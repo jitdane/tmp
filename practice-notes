@@ -1,0 +1,75 @@
+https://docs.docker.com/machine/install-machine/
+
+base=https://github.com/docker/machine/releases/download/v0.16.0 &&
+  sudo curl -L $base/docker-machine-$(uname -s)-$(uname -m) >/usr/local/bin/docker-machine &&
+  sudo chmod +x /usr/local/bin/docker-machine
+
+# install docker  (or ecs-init) and then start its service
+
+export IP=$(hostname --ip-address)
+export MD_URL='http://169.254.169.254/latest/meta-data'
+export PUBLIC_IP=$(curl ${MD_URL}/public-ipv4)
+export PRIVATE_IP=$(curl ${MD_URL}/local-ipv4)
+export MAC_ADDRESS=$(curl -s ${MD_URL}/network/interfaces/macs/)
+export AWS_AZ=$(curl -s ${MD_URL}/placement/availability-zone)
+
+# --amazonec2-vpc-id=<AWS_VPC_ID>
+export AWS_VPC_ID=$(curl -s ${MD_URL}/network/interfaces/macs/${MAC_ADDRESS}/vpc-id/)
+
+# --amazonec2-subnet-id
+export AWS_SUBNET_ID=$(curl -s ${MD_URL}/network/interfaces/macs/${MAC_ADDRESS}/subnet-id/)
+
+# --amazonec2-region
+export AWS_DEFAULT_REGION=${AWS_AZ%?}
+
+# --amazonec2-zone
+export AWS_ZONE=${AWS_AZ/#*-?/}
+
+# -d, or --driver
+export MACHINE_DRIVER=amazonec2
+
+# optional
+# --amazonec2-instance-type
+export AWS_INSTANCE_TYPE=t2.micro
+
+# optional
+# --amazonec2-root-size
+export AWS_ROOT_SIZE=8
+
+# optional
+# --amazonec2-volume-type
+export AWS_VOLUME_TYPE=gp2
+
+
+#These are user-specific credentials
+
+# --amazonec2-access-key
+export AWS_ACCESS_KEY_ID=<value>
+
+# --amazonec2-secret-key
+export AWS_SECRET_ACCESS_KEY=<value>
+
+# optional, only if I want to control the key to be used.
+# --amazonec2-keypair-name
+export AWS_KEYPAIR_NAME=<value>
+
+# --amazonec2-ssh-keypath
+export AWS_SSH_KEYPATH=<value>
+
+$ docker-machine create docker-test
+Running pre-create checks...
+Creating machine...
+(docker-test) Launching instance...
+Waiting for machine to be running, this may take a few minutes...
+Detecting operating system of created instance...
+Waiting for SSH to be available...
+Detecting the provisioner...
+Provisioning with ubuntu(systemd)...
+Installing Docker...
+Copying certs to the local machine directory...
+Copying certs to the remote machine...
+Setting Docker configuration on the remote daemon...
+Checking connection to Docker...
+Docker is up and running!
+To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env docker-test
+$
